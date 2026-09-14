@@ -1,24 +1,23 @@
-# DASE
+# DASE — 2-bosqich
 
-DASE — Android uchun ovozli shaxsiy AI yordamchi loyihasi.
+Bu versiyada quyidagilar qo‘shildi:
 
-## Birinchi bosqich
-
-- Android/Kotlin loyiha
-- DASE boshlang‘ich interfeysi
 - Mikrofon ruxsatini so‘rash
-- GitHub Actions orqali debug APK build
+- Ovozli buyruqni qabul qilish
+- O‘zbekcha nutqni matnga aylantirishga urinish
+- Buyruqni ekranda ko‘rsatish
+- Text-to-Speech orqali javob berish
+- GitHub Actions orqali APK build
 
-## Keyingi bosqichlar
+## Sinash
 
-- Ovozli buyruqlar
-- “Dase” faollashtirish
-- Android ilovalarini boshqarish
-- Telegram integratsiyasi
-- Onlayn AI
-- Offline AI modellar
-- Ruxsatlar va tasdiqlash tizimi
+1. APK’ni o‘rnating.
+2. Mikrofon ruxsatini bering.
+3. “Ovozli buyruq berish” tugmasini bosing.
+4. O‘zbekcha buyruq ayting.
+5. DASE aniqlangan matnni ekranga chiqaradi va ovoz chiqarib takrorlaydi.
 
-## Build
+## Muhim
 
-GitHub Actions bo‘limidan `Build DASE APK` workflow’ini ishga tushiring.
+Bu versiya hali “Dase” wake-word tizimi emas.
+Qulf ekranida doimiy tinglash, AI va Telegram boshqaruvi keyingi bosqichlarda qo‘shiladi.
