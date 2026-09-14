@@ -21,12 +21,14 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
     private lateinit var statusText: TextView
     private lateinit var commandText: TextView
+
     private var textToSpeech: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
+    private var wakeWordMode = false
+    private var waitingForCommand = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         textToSpeech = TextToSpeech(this, this)
         createInterface()
     }
@@ -47,8 +49,8 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         }
 
         val subtitle = TextView(this).apply {
-            text = "Shaxsiy AI yordamchi"
-            textSize = 18f
+            text = "3-bosqich • “Dase” faollashtirish prototipi"
+            textSize = 16f
             setTextColor(Color.LTGRAY)
             gravity = Gravity.CENTER
         }
@@ -69,37 +71,26 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             setPadding(0, 16, 0, 24)
         }
 
-        val microphoneButton = Button(this).apply {
-            text = "🎙 Ovozli buyruq berish"
+        val wakeButton = Button(this).apply {
+            text = "▶ “Dase” rejimini yoqish"
             setOnClickListener {
-                startVoiceRecognition()
-            }
-        }
-
-        val repeatButton = Button(this).apply {
-            text = "🔊 Javobni ovoz chiqarib aytish"
-            setOnClickListener {
-                val command = commandText.text.toString()
-                    .removePrefix("Buyruq: ")
-                    .trim()
-
-                if (command.isNotEmpty() && command != "—") {
-                    speak("Siz aytdingiz: $command")
+                if (wakeWordMode) {
+                    stopWakeWordMode()
                 } else {
-                    speak("Hozircha buyruq kiritilmadi")
+                    startWakeWordMode()
                 }
             }
         }
 
-        val permissionButton = Button(this).apply {
-            text = "Mikrofon ruxsatini tekshirish"
+        val oneShotButton = Button(this).apply {
+            text = "🎙 Bitta buyruqni tinglash"
             setOnClickListener {
-                requestMicrophonePermission()
+                startOneShotRecognition()
             }
         }
 
         val info = TextView(this).apply {
-            text = "2-bosqich: ovozni matnga aylantirish va ovozli javob."
+            text = "“Dase” rejimi ilova ochiq turganda ovozni tinglaydi. “Dase” deganingizdan keyin keyingi buyruqni qabul qiladi."
             textSize = 14f
             setTextColor(Color.LTGRAY)
             gravity = Gravity.CENTER
@@ -110,28 +101,26 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         root.addView(subtitle, matchParams())
         root.addView(statusText, matchParams())
         root.addView(commandText, matchParams())
-        root.addView(microphoneButton, matchParams())
-        root.addView(repeatButton, matchParams())
-        root.addView(permissionButton, matchParams())
+        root.addView(wakeButton, matchParams())
+        root.addView(oneShotButton, matchParams())
         root.addView(info, matchParams())
 
         setContentView(root)
     }
 
-    private fun matchParams(): LinearLayout.LayoutParams {
-        return LinearLayout.LayoutParams(
+    private fun matchParams(): LinearLayout.LayoutParams =
+        LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+
+    private fun hasMicrophonePermission(): Boolean {
+        return checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestMicrophonePermission(): Boolean {
-        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            statusText.text = "Holat: Mikrofon ruxsati berilgan"
-            return true
-        }
+    private fun ensureMicrophonePermission(): Boolean {
+        if (hasMicrophonePermission()) return true
 
         requestPermissions(
             arrayOf(Manifest.permission.RECORD_AUDIO),
@@ -140,28 +129,50 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         return false
     }
 
-    private fun startVoiceRecognition() {
-        if (!requestMicrophonePermission()) {
-            return
-        }
+    private fun startWakeWordMode() {
+        if (!ensureMicrophonePermission()) return
 
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             statusText.text = "Holat: Ovoz tanish xizmati mavjud emas"
-            Toast.makeText(
-                this,
-                "Telefoningizda ovoz tanish xizmati mavjud emas",
-                Toast.LENGTH_LONG
-            ).show()
             return
         }
 
+        wakeWordMode = true
+        waitingForCommand = false
+        statusText.text = "Holat: “Dase” so‘zini kutyapman..."
+        startRecognition()
+    }
+
+    private fun stopWakeWordMode() {
+        wakeWordMode = false
+        waitingForCommand = false
+        speechRecognizer?.cancel()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+        statusText.text = "Holat: To‘xtatildi"
+    }
+
+    private fun startOneShotRecognition() {
+        if (!ensureMicrophonePermission()) return
+
+        wakeWordMode = false
+        waitingForCommand = true
+        startRecognition()
+    }
+
+    private fun startRecognition() {
+        speechRecognizer?.cancel()
         speechRecognizer?.destroy()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
 
         speechRecognizer?.setRecognitionListener(
             object : android.speech.RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
-                    statusText.text = "Holat: Tinglayapman..."
+                    statusText.text = if (wakeWordMode && !waitingForCommand) {
+                        "Holat: “Dase”ni tinglayapman..."
+                    } else {
+                        "Holat: Buyruqni tinglayapman..."
+                    }
                 }
 
                 override fun onBeginningOfSpeech() {
@@ -172,31 +183,26 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                 override fun onBufferReceived(buffer: ByteArray?) = Unit
 
                 override fun onEndOfSpeech() {
-                    statusText.text = "Holat: Qayta ishlanmoqda..."
+                    statusText.text = "Holat: Natija tekshirilmoqda..."
                 }
 
                 override fun onError(error: Int) {
-                    statusText.text = "Holat: Ovoz tanishda xato: $error"
+                    if (wakeWordMode) {
+                        statusText.text = "Holat: Qayta tinglashga tayyorlanmoqda..."
+                        window.decorView.postDelayed({
+                            if (wakeWordMode) startRecognition()
+                        }, 700)
+                    } else {
+                        statusText.text = "Holat: Ovoz tanishda xato: $error"
+                    }
                 }
 
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(
                         SpeechRecognizer.RESULTS_RECOGNITION
                     )
-
                     val result = matches?.firstOrNull().orEmpty()
-
-                    commandText.text = if (result.isBlank()) {
-                        "Buyruq: Aniqlanmadi"
-                    } else {
-                        "Buyruq: $result"
-                    }
-
-                    statusText.text = "Holat: Buyruq qabul qilindi"
-
-                    if (result.isNotBlank()) {
-                        speak("Siz aytdingiz: $result")
-                    }
+                    processRecognizedText(result)
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) = Unit
@@ -212,10 +218,49 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "uz-UZ")
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "uz-UZ")
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
             putExtra(RecognizerIntent.EXTRA_PROMPT, "DASE sizni tinglamoqda...")
         }
 
         speechRecognizer?.startListening(intent)
+    }
+
+    private fun processRecognizedText(text: String) {
+        val normalized = text.trim().lowercase(Locale("uz", "UZ"))
+        commandText.text = if (text.isBlank()) {
+            "Buyruq: Aniqlanmadi"
+        } else {
+            "Buyruq: $text"
+        }
+
+        if (wakeWordMode && !waitingForCommand) {
+            if (normalized.contains("dase") || normalized.contains("dasi")) {
+                waitingForCommand = true
+                statusText.text = "Holat: Faollashdim, buyruqni ayting"
+                speak("Ha, tinglayapman")
+            } else {
+                statusText.text = "Holat: “Dase” so‘zini kutyapman..."
+            }
+
+            window.decorView.postDelayed({
+                if (wakeWordMode && waitingForCommand) {
+                    startRecognition()
+                } else if (wakeWordMode) {
+                    startRecognition()
+                }
+            }, 500)
+            return
+        }
+
+        waitingForCommand = false
+        statusText.text = "Holat: Buyruq qabul qilindi"
+        speak("Siz aytdingiz: $text")
+
+        if (wakeWordMode) {
+            window.decorView.postDelayed({
+                if (wakeWordMode) startRecognition()
+            }, 800)
+        }
     }
 
     private fun speak(text: String) {
@@ -230,20 +275,12 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = textToSpeech?.setLanguage(Locale("uz", "UZ"))
-
             if (result == TextToSpeech.LANG_MISSING_DATA ||
                 result == TextToSpeech.LANG_NOT_SUPPORTED
             ) {
-                textToSpeech?.language = Locale("en", "US")
+                textToSpeech?.language = Locale.US
             }
         }
-    }
-
-    override fun onDestroy() {
-        speechRecognizer?.destroy()
-        textToSpeech?.stop()
-        textToSpeech?.shutdown()
-        super.onDestroy()
     }
 
     override fun onRequestPermissionsResult(
@@ -251,11 +288,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(
-            requestCode,
-            permissions,
-            grantResults
-        )
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == MICROPHONE_REQUEST_CODE) {
             val granted = grantResults.isNotEmpty() &&
@@ -267,6 +300,14 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                 "Holat: Mikrofon ruxsati berilmadi"
             }
         }
+    }
+
+    override fun onDestroy() {
+        wakeWordMode = false
+        speechRecognizer?.destroy()
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        super.onDestroy()
     }
 
     companion object {
