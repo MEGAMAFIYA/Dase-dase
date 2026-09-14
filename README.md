@@ -1,25 +1,31 @@
-# DASE — 3-bosqich
+# DASE — 4-bosqich
 
 ## Qo‘shilgan imkoniyatlar
 
-- “Dase” so‘zini aniqlash prototipi
-- Ilova ochiq turganda takroriy tinglash
-- “Dase” aniqlangach keyingi ovozli buyruqni qabul qilish
-- Ovozli javob
-- Bitta buyruqni alohida tinglash
+- Accessibility Service manifest va konfiguratsiyasi
+- Android Accessibility sozlamalarini ochish
+- Xizmat yoqilgan/o‘chirilgan holatini ko‘rsatish
+- Telegram ilovasini package orqali ochish
+- Mikrofon ruxsatini tekshirish
 - GitHub Actions orqali APK build
 
 ## Sinash
 
 1. APK’ni o‘rnating.
-2. Mikrofon ruxsatini bering.
-3. “Dase” rejimini yoqing.
-4. “Dase” deb ayting.
-5. DASE “Ha, tinglayapman” deb javob beradi.
-6. Keyingi buyruqni ayting.
+2. DASE’ni oching.
+3. “Accessibility ruxsatlarini ochish” tugmasini bosing.
+4. “DASE ilova boshqaruvi” xizmatini topib, o‘zingiz tasdiqlab yoqing.
+5. DASE’ga qayting va holatni tekshiring.
+6. “Telegramni ochish” tugmasini sinang.
 
-## Muhim cheklov
+## Muhim xavfsizlik cheklovi
 
-Bu haqiqiy offline wake-word modeli emas. Android SpeechRecognizer telefonning mavjud nutq tanish xizmatidan foydalanadi va ko‘pincha internetga bog‘liq bo‘lishi mumkin.
+Accessibility Service juda kuchli ruxsatdir. Uni faqat ishonadigan ilovaga bering.
 
-Bu bosqich ilova ochiq turganda ishlaydi. Qulf ekranida yoki doimiy fonda ishlash hali qo‘shilmagan. Keyingi bosqichda foreground service, bildirishnoma va Android/MIUI fon cheklovlari bilan ishlash alohida qo‘shiladi.
+Bu bosqichda DASE:
+- boshqa ilovalarda avtomatik tugma bosmaydi;
+- xabarlarni avtomatik yubormaydi;
+- parollarni o‘qimaydi;
+- foydalanuvchi tasdig‘isiz amallar bajarmaydi.
+
+Keyingi bosqichda Telegram ichida chat qidirish va xabar yozish uchun alohida, ko‘rinadigan tasdiqlash oqimi ishlab chiqiladi.

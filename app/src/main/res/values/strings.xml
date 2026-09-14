@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DASE</string>
+    <string name="accessibility_service_name">DASE ilova boshqaruvi</string>
+    <string name="accessibility_service_description">DASE foydalanuvchi tasdig‘i bilan ekrandagi ilovalar bilan ishlash uchun foydalaniladi.</string>
 </resources>
