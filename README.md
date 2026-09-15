@@ -113,6 +113,13 @@ Bu faqat Android SDK/emulyator talab qilmaydigan, sof Kotlin mantiqni
 va Telegram navigatsiyasi uchun instrumentatsiya (`androidTest`) testlari
 hali yozilmagan — bu keyingi ustuvor vazifa.
 
+## APK'ni qayerdan yuklab olish
+
+Har bir `main`/`master`ga push'dan keyin GitHub Actions ikki joyga APK qo'yadi:
+
+1. **Actions > tegishli workflow run > Artifacts** — vaqtinchalik (90 kunda o'chadi), yuklab olish uchun GitHub'ga kirgan bo'lishingiz kerak.
+2. **Releases** bo'limi, "Eng so'nggi build" nomli — doim eng oxirgi commit'ning APK'sini o'zida saqlaydi (har safar eskisi almashtiriladi), GitHub'ga kirmasdan ham to'g'ridan-to'g'ri yuklab olish mumkin (repo public bo'lsa).
+
 ## Qo'lda sinash tartibi
 
 1. APK'ni o'rnating (GitHub Actions artifaktidan yoki `gradle assembleDebug`).

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -36,7 +36,7 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: DASE-debug-APK
@@ -50,3 +50,20 @@ jobs:
           name: DASE-unit-test-report
           path: app/build/reports/tests/
           if-no-files-found: warn
+
+      # Workflow artifact (yuqorida) 90 kundan keyin avtomatik o'chiriladi
+      # va yuklab olish uchun GitHub'ga kirgan (login qilingan) bo'lish
+      # kerak. Shu sababli, boshqa repo'dagi "Eng so'nggi build" kabi
+      # doim ochiq, muddatsiz yuklab olinadigan APK uchun alohida
+      # GitHub Release yaratamiz va shu yerga APK'ni biriktiramiz.
+      - name: Publish/update "Eng so'nggi build" release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest-build --yes --cleanup-tag || true
+          gh release create latest-build \
+            app/build/outputs/apk/debug/app-debug.apk \
+            --title "Eng so'nggi build" \
+            --notes "Avtomatik build. Commit: ${{ github.sha }}" \
+            --prerelease
