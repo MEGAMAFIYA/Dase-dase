@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!--
+        Android 11 (API 30)dan boshlab, boshqa ilovaning o'rnatilganligini
+        tekshirish ("getLaunchIntentForPackage") uchun uni shu yerda aniq
+        e'lon qilish SHART, aks holda paket o'rnatilgan bo'lsa ham `null`
+        qaytadi (avvalgi auditda topilgan eng jiddiy xato — shu yerda
+        tuzatildi).
+    -->
+    <queries>
+        <package android:name="org.telegram.messenger" />
+    </queries>
 
     <application
         android:allowBackup="false"
@@ -34,6 +49,24 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
 
+        </service>
+
+        <!--
+            10-bosqich (fon rejimi) POYDEVORI. Tur sifatida "specialUse"
+            tanlandi, chunki bu servis hozircha faqat doimiy bildirishnoma
+            ko'rsatadi va tegishli oldindan belgilangan turlardan (masalan
+            "microphone" yoki "mediaPlayback") biriga TO'G'RI KELMAYDI —
+            hozircha mikrofonni o'zi ishlatmaydi. "microphone" turini
+            haqiqatda mikrofon shu servis ichida ishlatilmaguncha yozish
+            noto'g'ri (aniq bo'lmagan) bo'lardi.
+        -->
+        <service
+            android:name=".DaseForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="voice_assistant_standby_notification" />
         </service>
 
     </application>

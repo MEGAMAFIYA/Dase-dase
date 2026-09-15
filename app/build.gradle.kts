@@ -11,8 +11,8 @@ android {
         applicationId = "com.dase.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.5.0"
     }
 
     buildTypes {
@@ -29,4 +29,21 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+// ESLATMA: versiyalar shu loyiha yozilgan paytda (2026-yil boshi) barqaror
+// deb hisoblangan qiymatlarga o'rnatilgan. Haqiqiy `gradle build` bu
+// muhitda (tarmoqsiz sandbox) ishga tushirib ko'rilmadi, shuning uchun
+// bog'liqliklarning muvaffaqiyatli yuklanishi GitHub Actions orqali
+// tasdiqlanishi kerak. Agar versiya topilmasa, eng yaqin barqaror
+// versiyaga yangilang: https://maven.google.com dan tekshirish mumkin.
+dependencies {
+    // Bildirishnoma (NotificationCompat) — DaseForegroundService uchun.
+    implementation("androidx.core:core:1.13.1")
+
+    // API kalitlarini shifrlangan holda saqlash (SecureKeyStore) uchun.
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // Sof-Kotlin unit testlar uchun (CommandParserTest, ConfirmationManagerTest).
+    testImplementation("junit:junit:4.13.2")
 }

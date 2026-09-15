@@ -30,12 +30,23 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Run unit tests (CommandParser, ConfirmationManager)
+        run: gradle test --no-daemon
+
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DASE-stage4-accessibility-APK
+          name: DASE-debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DASE-unit-test-report
+          path: app/build/reports/tests/
+          if-no-files-found: warn
